@@ -1,0 +1,20 @@
+<form method="POST" action="{% url 'guardar_gasto' %}"></form>
+  {% csrf_token %}
+
+  <label>Monto:</label> <input type="number" name="monto" required /><br />
+
+  <label>Tipo:</label>
+  <select name="tipo" required>
+    <option value="" disabled selected>-- Seleccionar --</option>
+    <option value="ingreso">Ingreso</option>
+    <option value="egreso">Egreso</option></select
+  ><br />
+
+  <label>Fecha:</label> <input type="date" name="fecha" required /><br />
+
+  <label>Descripción:</label> <input type="text" name="descripcion" /><br />
+
+  <label>Texto Crudo:</label> <textarea name="raw_text"></textarea><br />
+
+  <button type="submit">Guardar</button>
+</form>
