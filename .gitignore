@@ -1,0 +1,22 @@
+# Variables de entorno y credenciales (Crítico)
+.env
+
+# Entornos virtuales
+venv/
+env/
+
+# Archivos compilados de Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Base de datos local por defecto de Django (si llega a usarla)
+db.sqlite3
+db.sqlite3-journal
+
+# Archivos estáticos (generados para producción)
+staticfiles/
+
+# Archivos de configuración del editor (VS Code)
+.vscode/
