@@ -1,7 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, redirect
 from django.db.models import Sum
-from .models import Transaccion, ReglaAutomatica
+from .models import Categoria, Transaccion, ReglaAutomatica
 from .motor_reglas import MotorCategorizacion
 
 @login_required(login_url='/accounts/login/')
@@ -34,15 +34,20 @@ def guardar_gasto(request):
         # Inicializar el motor y analizar el texto[cite: 1]
         motor = MotorCategorizacion(diccionario)
         texto_analizar = raw if raw else desc
-        cat_detectada = motor.analizar(texto_analizar)
-        
+        nombre_categoria = motor.analizar(texto_analizar)
+
+        categoria_obj, _ = Categoria.objects.get_or_create(
+            nombre=nombre_categoria,
+            usuario=request.user
+        )
+
         # Guardar la transacción[cite: 1]
         Transaccion.objects.create(
             usuario=request.user, 
             monto=request.POST.get('monto'),
             tipo=request.POST.get('tipo'),
             descripcion=desc,
-            categoria=cat_detectada, 
+            categoria=categoria_obj, 
             raw_text=raw
         )
         return redirect('dashboard')
