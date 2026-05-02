@@ -4,7 +4,7 @@ from django.db.models import Sum
 from .models import Transaccion, ReglaAutomatica
 from .motor_reglas import MotorCategorizacion
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/accounts/login/')
 def dashboard(request):
     # Filtra transacciones y calcula métricas en la BD[cite: 1]
     mis_gastos = Transaccion.objects.filter(usuario=request.user)
@@ -20,7 +20,7 @@ def dashboard(request):
     }
     return render(request, 'dashboard.html', contexto)
 
-@login_required(login_url='/admin/login/')
+@login_required(login_url='/accounts/login/')
 def guardar_gasto(request):
     if request.method == 'POST':
         # Captura de datos
