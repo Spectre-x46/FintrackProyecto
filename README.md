@@ -1,163 +1,155 @@
 # FinTrack
 
-FinTrack es un proyecto Django en desarrollo para la gestión simple de finanzas personales con autenticación de usuarios y motor de categorización automática de transacciones. Actualmente incluye una página de dashboard básica y modelos para usuarios, categorías, transacciones y reglas automáticas de clasificación.
+FinTrack es una aplicación web Django para la **gestión inteligente de finanzas personales**. Permite registrar ingresos y gastos, visualizarlos en un dashboard con gráficos en tiempo real, y automatizar la categorización de transacciones mediante un motor de reglas personalizadas.
 
 **Autores**: Gabriela Alvarado, Felipe Droguett, Rodrigo Villaroel.
 
-## Estado actual
+---
 
-- Proyecto Django 6.0 con autenticación de usuarios implementada.
-- Aplicación principal: `core`.
-- Dashboard disponible en `/dashboard/` (requiere autenticación).
-- Página de inicio en la ruta raíz (`/`) con opción de login.
-- Plantilla principal: `templates/base.html` con Bootstrap 5, Font Awesome y SweetAlert.
-- Base de datos conectada a PostgreSQL mediante variables de entorno (últimas transacciones guardadas en BD).
-- Sistema de autenticación configurado con `django.contrib.auth` y `django.contrib.auth.urls`.
+## Estado actual del proyecto
 
-## Componentes principales
+| Módulo | Estado |
+|---|---|
+| Autenticación (Login / Logout) | ✅ Implementado |
+| Dashboard con métricas dinámicas | ✅ Implementado |
+| Gráfico de gastos por categoría (Chart.js) | ✅ Implementado |
+| Formulario de nueva transacción | ✅ Implementado |
+| Motor de categorización automática (Regex) | ✅ Implementado |
+| Gestión de Reglas Automáticas (CRUD) | ✅ Implementado |
+| Modelos con DecimalField y __str__ | ✅ Implementado |
+| Conexión a banco vía API (Fintoc/Belvo) | 🔜 Próximo paso |
+| Filtros por período (mes/año) | 🔜 Próximo paso |
+| Exportar reportes (CSV/PDF) | 🔜 Próximo paso |
 
-- `manage.py` - utilidad de Django para ejecutar comandos.
-- `fintrack/settings.py` - configuración del proyecto (incluye PostgreSQL, autenticación, middlewares de seguridad).
-- `fintrack/urls.py` - enrutamiento principal del proyecto (admin, core routes y autenticación).
-- `core/urls.py` - rutas de la aplicación core (index, dashboard, guardar_gasto).
-- `core/models.py` - definiciones de datos para:
-  - `User` - modelo de usuario estándar de Django
-  - `Categoria` - categorías de transacciones (vinculadas al usuario)
-  - `ReglaAutomatica` - reglas para asignar categorías automáticamente según palabra clave
-  - `Transaccion` - registro de ingresos y gastos con categoría, descripción y texto raw
-- `core/motor_reglas.py` - motor de categorización automática que analiza texto y asigna categorías según reglas del usuario.
-- `core/views.py` - vistas principales:
-  - `index()` - página de inicio que redirige a dashboard si está autenticado
-  - `dashboard()` - panel de control que muestra ingresos, gastos, balance y transacciones (requiere login)
-  - `guardar_gasto()` - formulario para crear nuevas transacciones con categorización automática
-- `templates/base.html` - plantilla base del proyecto con navegación y pie de página.
-- `templates/dashboard.html` - plantilla del dashboard con tarjetas de resumen financiero.
-- `templates/registration/login.html` - formulario de autenticación con validación de errores.
-- `templates/index.html` - página de inicio con acceso a login.
+---
+
+## Arquitectura del Proyecto
+
+```
+FintrackProyecto-main/
+├── fintrack/               # Configuración global del proyecto Django
+│   ├── settings.py         # BD, autenticación, apps instaladas
+│   └── urls.py             # Enrutador raíz: /admin, /accounts, /core
+│
+├── core/                   # Aplicación principal
+│   ├── models.py           # Modelos: Categoria, ReglaAutomatica, Transaccion
+│   ├── views.py            # Vistas: dashboard, guardar_gasto, reglas_list, eliminar_regla
+│   ├── urls.py             # Rutas: /, /dashboard/, /guardar_gasto/, /reglas/
+│   └── motor_reglas.py     # Clase MotorCategorizacion (clasificación automática)
+│
+├── templates/
+│   ├── base.html           # Plantilla base con navbar y mensajes flash globales
+│   ├── index.html          # Página de inicio (redirige al dashboard si hay sesión)
+│   ├── dashboard.html      # Panel principal con métricas y gráfico de torta
+│   ├── registration/
+│   │   └── login.html      # Formulario de inicio de sesión
+│   ├── Transacciones/
+│   │   └── transacciones_form.html  # Formulario para registrar ingreso/gasto
+│   └── reglas/
+│       └── reglas_list.html         # Gestión de reglas automáticas del motor
+│
+└── static/                 # Archivos CSS, JS e imágenes propios del proyecto
+```
+
+---
+
+## Cómo funciona el Motor de Categorización
+
+1. El usuario define **Reglas Automáticas** en `/reglas/`: pares `{palabra_clave: categoría}`.
+   - Ejemplo: `rappi` → `Delivery`, `uber` → `Transporte`.
+2. Al registrar una transacción, el texto es analizado por `MotorCategorizacion`.
+3. El motor busca cada palabra clave usando **Expresiones Regulares** (palabras completas, no subcadenas).
+4. Si hay coincidencia, asigna la categoría automáticamente. Si no, queda como `Sin Categoría`.
+
+---
 
 ## Tecnologías
 
-- **Backend**: Python 3.x, Django 6.0
-- **Base de datos**: PostgreSQL
-- **Frontend**: HTML5, Bootstrap 5, CSS personalizado
-- **Librerías**: Font Awesome (iconos), SweetAlert (alertas), django-decouple (variables de entorno)
-- **Autenticación**: Django Auth (contrib.auth)
+| Categoría | Tecnología |
+|---|---|
+| Backend | Python 3.x, Django 6.0 |
+| Base de Datos | PostgreSQL |
+| Frontend | Bootstrap 5, Chart.js, Font Awesome, SweetAlert2 |
+| Autenticación | Django Auth (`django.contrib.auth`) |
+| Variables de Entorno | `python-decouple` |
 
-## Características principales
-
-### Motor de Categorización Automática
-- El `MotorCategorizacion` analiza textos ingresados por el usuario y los clasifica automáticamente.
-- Utiliza palabras clave definidas por el usuario en sus reglas personalizadas.
-- Si coincide una palabra clave en el texto, asigna la categoría asociada automáticamente.
-- Si no encuentra coincidencia, clasifica como "Sin Categoría".
-
-### Sistema de Autenticación
-- Implementado con `django.contrib.auth` y decorador `@login_required`.
-- Usuarios redirigidos a `/accounts/login/` si no están autenticados.
-- Después del login, se redirige al dashboard.
-- Página de inicio verifica si el usuario está autenticado y lo redirige apropiadamente.
-
-### Dashboard
-- Muestra resumen de ingresos, gastos y balance general del usuario.
-- Calcula métricas directamente desde la base de datos (suma de montos por tipo).
-- Permite navegar a formularios de transacciones.
-
-### Gestión de Transacciones
-- Formulario para crear nuevas transacciones (`Transacciones/transacciones_form.html`).
-- Captura tipo (ingreso/gasto), monto, descripción y texto raw.
-- Categorización automática mediante el motor de reglas.
-- Almacenamiento en PostgreSQL con relación al usuario autenticado.
+---
 
 ## Requisitos
 
-Asegúrate de tener instalado:
+- Python 3.8+
+- PostgreSQL 10+
+- pip
 
-- Python 3.8 o superior
-- PostgreSQL 10 o superior
-- pip (gestor de paquetes de Python)
-- Un entorno virtual (recomendado)
+---
 
 ## Configuración local
 
-1. Clona el repositorio desde GitHub.
+```bash
+# 1. Clonar el repositorio
+git clone <url-del-repo>
 
-2. Crea y activa un entorno virtual:
-   ```bash
-   python -m venv venv
-   # En Windows:
-   venv\Scripts\activate
-   # En macOS/Linux:
-   source venv/bin/activate
-   ```
+# 2. Crear y activar entorno virtual
+python -m venv venv
+venv\Scripts\activate        # Windows
+# source venv/bin/activate   # macOS/Linux
 
-3. Instala las dependencias:
-   ```bash
-   pip install django python-decouple psycopg2-binary
-   ```
+# 3. Instalar dependencias
+pip install django python-decouple psycopg2-binary bcrypt
 
-4. Crea un archivo `.env` en la raíz del proyecto con los siguientes valores:
-   ```env
-   DB_NAME=nombre_de_tu_bd
-   DB_USER=usuario_bd
-   DB_PASSWORD=tu_contraseña
-   DB_HOST=localhost
-   DB_PORT=5432
-   ```
-   
-   **Nota**: Asegúrate de que PostgreSQL esté corriendo y la base de datos exista.
+# 4. Crear el archivo .env en la raíz
+# DB_NAME=nombre_bd
+# DB_USER=usuario_bd
+# DB_PASSWORD=contraseña
+# DB_HOST=localhost
+# DB_PORT=5432
 
-5. Aplica migraciones para crear las tablas:
-   ```bash
-   python manage.py makemigrations
-   python manage.py migrate
-   ```
+# 5. Aplicar migraciones
+python manage.py makemigrations
+python manage.py migrate
 
-6. (Opcional) Crea un superusuario para acceder al panel de administración:
-   ```bash
-   python manage.py createsuperuser
-   ```
-   Se accede en `/admin/` con credenciales de superusuario.
+# 6. (Opcional) Crear superusuario para el admin
+python manage.py createsuperuser
 
-7. Ejecuta el servidor de desarrollo:
-   ```bash
-   python manage.py runserver
-   ```
+# 7. Iniciar servidor
+python manage.py runserver
+```
 
-8. Abre tu navegador en `http://127.0.0.1:8000/`.
+Accede en: `http://127.0.0.1:8000`
+
+---
 
 ## Flujo de uso
 
-1. **Página de Inicio**: Accede a `http://127.0.0.1:8000/`.
-2. **Login**: Ingresa credenciales de usuario registrado (o crea uno vía admin).
-3. **Dashboard**: Visualiza resumen de ingresos, gastos y balance.
-4. **Crear Transacción**: Completa el formulario en `/guardar_gasto/` con detalles de la transacción.
-5. **Categorización Automática**: El motor analiza el texto ingresado y asigna categoría automáticamente.
-6. **Registro en BD**: La transacción se guarda en PostgreSQL asociada a tu usuario.
+1. **Login** → Ingresa con tu usuario en `/accounts/login/`.
+2. **Dashboard** → Visualiza tus ingresos, gastos, balance y el gráfico de torta por categoría.
+3. **Nueva Transacción** → En `/guardar_gasto/`, registra un ingreso o gasto. Puedes pegar el texto crudo del banco y el motor lo categoriza solo.
+4. **Motor de Reglas** → En `/reglas/`, configura tus palabras clave para que la app aprenda tus patrones de gasto.
 
-## Próximos pasos sugeridos
+---
 
-- Mejorar el dashboard: mostrar datos reales de ingresos, gastos y balance dinámicamente.
-- Implementar edición y eliminación de transacciones.
-- Crear interfaz para gestionar categorías personalizadas y reglas automáticas.
-- Agregar gráficos de análisis de gastos (pie charts, line charts).
-- Implementar reportes por período (mensual, anual).
-- Añadir exportación de datos (CSV, PDF).
-- Validar montos en transacciones (usar decimales en lugar de enteros).
-- Implementar paginación en listado de transacciones.
-- Mejorar la experiencia de usuario con más feedback visual (SweetAlert confirmaciones).
-- Agregar pruebas unitarias e integración.
-- Desplegar en servidor de producción y configurar variables de seguridad.
+## Historial de cambios
 
-## Historial de cambios recientes
+| Fecha | Cambios |
+|---|---|
+| Mayo 8, 2026 | Rediseño completo del UI (Bootstrap 5 + Chart.js). CRUD de reglas automáticas. Fix bug redirección post-login. Fix bug diccionario de categorías. Motor de reglas mejorado con Regex. Docstrings y comentarios de negocio en todo el código. |
+| Mayo 2, 2026 | Conexión de transacciones a BD implementada. |
+| Commits previos | Autenticación con `@login_required`, reorganización de URLs, implementación de formularios y vistas de transacciones. |
 
-- **Última actualización (May 2, 2026)**: Conexión de transacciones a BD implementada.
-- **Commits previos**: Configuración de autenticación con `@login_required`, reorganización de URLs en jerarquías Core y FinTrack, resolución de conflictos de fusión, implementación de formularios y vistas de transacciones.
-- **Migraciones**: Tabla de transacciones conectada a usuarios, categorías y reglas automáticas.
+---
+
+## Próximos pasos
+
+1. **Filtros por período**: Ver dashboard filtrado por mes o año.
+2. **Multicuenta**: Separar gastos por cuenta bancaria (Corriente, Crédito, Efectivo).
+3. **Integración Open Banking**: Conectar con [Fintoc](https://fintoc.com) o [Belvo](https://belvo.com) para importar transacciones automáticamente desde el banco.
+4. **Pruebas unitarias**: Cubrir el `MotorCategorizacion` y las vistas con tests de Django.
+
+---
 
 ## Notas de desarrollo
 
-- El dashboard actualmente muestra estructura de tarjetas pero necesita integración con contexto dinámico de datos.
-- El campo `monto` en la tabla `Transaccion` está como `IntegerField` (considera usar `DecimalField` para cantidades monetarias).
-- El motor de reglas es sensible a mayúsculas/minúsculas (convierte todo a minúsculas antes de comparar).
-- La autenticación está en funcionamiento; todas las vistas críticas están protegidas con `@login_required`.
-- PostgreSQL debe estar corriendo y accesible para que la aplicación funcione correctamente.
+- El campo `monto` usa `DecimalField` para precisión financiera real.
+- El motor de reglas convierte todo a minúsculas antes de comparar (insensible a mayúsculas).
+- Los webhooks futuros de bancos deberán validarse con firma criptográfica (`X-Fintoc-Signature`).
+- `DEBUG = True` solo para desarrollo local. Nunca desplegar en producción con ese valor.
