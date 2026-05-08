@@ -22,11 +22,46 @@
   </head>
 
   <body class="bg-light">
-    <nav class="navbar navbar-dark bg-dark">
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark shadow-sm">
       <div class="container">
-        <a class="navbar-brand" href="#">FinTrack</a>
+        <a class="navbar-brand fw-bold" href="{% url 'index' %}"><i class="fa-solid fa-money-bill-wave text-success"></i> FinTrack</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto align-items-center">
+            {% if user.is_authenticated %}
+            <li class="nav-item">
+              <a class="nav-link active" href="{% url 'dashboard' %}">Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="{% url 'guardar_gasto' %}">Añadir Transacción</a>
+            </li>
+            <li class="nav-item dropdown ms-3">
+              <a class="btn btn-outline-light rounded-pill px-3" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="fa-solid fa-user"></i> Hola, {{ user.username }}
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-2">
+                <li>
+                  <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="dropdown-item text-danger"><i class="fa-solid fa-right-from-bracket"></i> Cerrar Sesión</button>
+                  </form>
+                </li>
+              </ul>
+            </li>
+            {% else %}
+            <li class="nav-item">
+              <a class="btn btn-success rounded-pill px-4" href="{% url 'login' %}">Iniciar Sesión</a>
+            </li>
+            {% endif %}
+          </ul>
+        </div>
       </div>
     </nav>
+    
+    <!-- Soporte para los dropdowns de Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
 
     <div class="container mt-4">
       {% block content %}

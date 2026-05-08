@@ -1,20 +1,61 @@
-<form method="POST" action="{% url 'guardar_gasto' %}">
-  {% csrf_token %}
+{% extends 'base.html' %}
+{% block content %}
+<div class="row justify-content-center">
+  <div class="col-lg-8 col-xl-6">
+    <div class="card shadow-sm border-0 rounded-4 mt-3 mb-5">
+      <div class="card-header bg-dark text-white rounded-top-4 py-3">
+        <h4 class="mb-0 fw-bold"><i class="fa-solid fa-file-invoice-dollar me-2 text-success"></i> Registrar Transacción</h4>
+      </div>
+      <div class="card-body p-4 p-md-5">
+        <!-- El formulario manda la información a la vista guardar_gasto -->
+        <form method="POST" action="{% url 'guardar_gasto' %}">
+          {% csrf_token %}
+          
+          <div class="row mb-4">
+            <div class="col-md-6 mb-3 mb-md-0">
+              <label class="form-label fw-bold text-secondary">Tipo</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-secondary"><i class="fa-solid fa-arrow-right-arrow-left"></i></span>
+                <select name="tipo" class="form-select form-select-lg" required>
+                  <option value="" disabled selected>-- Seleccionar --</option>
+                  <option value="ingreso">Ingreso (+)</option>
+                  <!-- CORRECCIÓN: antes decía "egreso", lo cual rompía la BD que espera "gasto" -->
+                  <option value="gasto">Gasto (-)</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label fw-bold text-secondary">Monto</label>
+              <div class="input-group">
+                <span class="input-group-text bg-light text-secondary"><i class="fa-solid fa-dollar-sign"></i></span>
+                <input type="number" step="0.01" class="form-control form-control-lg" name="monto" placeholder="Ej: 50000" required />
+              </div>
+            </div>
+          </div>
 
-  <label>Monto:</label> <input type="number" name="monto" required /><br />
+          <div class="mb-4">
+            <label class="form-label fw-bold text-secondary">Descripción Manual</label>
+            <div class="input-group">
+              <span class="input-group-text bg-light text-secondary"><i class="fa-solid fa-pen"></i></span>
+              <input type="text" class="form-control form-control-lg" name="descripcion" placeholder="Ej: Compra de supermercado Lider" />
+            </div>
+            <div class="form-text mt-2"><i class="fa-solid fa-circle-info text-info"></i> Escribe qué compraste si lo estás haciendo manualmente.</div>
+          </div>
 
-  <label>Tipo:</label>
-  <select name="tipo" required>
-    <option value="" disabled selected>-- Seleccionar --</option>
-    <option value="ingreso">Ingreso</option>
-    <option value="egreso">Egreso</option>
-  </select><br />
+          <div class="mb-4">
+            <label class="form-label fw-bold text-secondary">Pegar Texto Crudo (Texto del Banco)</label>
+            <textarea class="form-control bg-light" name="raw_text" rows="3" placeholder="Pega aquí el mensaje SMS o email del banco (ej: COMPRA TD *SUPERM LIDER 1234)"></textarea>
+            <div class="form-text mt-2 text-warning"><i class="fa-solid fa-robot"></i> Nuestro motor analizará este texto para asignarle una categoría automáticamente.</div>
+          </div>
 
-  <label>Fecha:</label> <input type="date" name="fecha" required /><br />
-
-  <label>Descripción:</label> <input type="text" name="descripcion" /><br />
-
-  <label>Texto Crudo:</label> <textarea name="raw_text"></textarea><br />
-
-  <button type="submit">Guardar</button>
-</form>
+          <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-5">
+            <a href="{% url 'dashboard' %}" class="btn btn-light btn-lg px-4 text-secondary me-md-2 fw-medium">Cancelar</a>
+            <button type="submit" class="btn btn-success btn-lg px-5 shadow-sm fw-bold"><i class="fa-solid fa-check me-2"></i> Guardar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

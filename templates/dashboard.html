@@ -1,24 +1,148 @@
-{% extends 'base.html' %} {% block content %}
-<div class="container mt-4">
-  <h1>Dashboard</h1>
+{% extends 'base.html' %} 
 
-  <!-- Módulo 2: Grillas de Bootstrap -->
+{% block content %}
+<div class="container mt-4">
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="fw-bold"><i class="fa-solid fa-chart-pie text-primary"></i> Mi Resumen Financiero</h1>
+    <a href="{% url 'guardar_gasto' %}" class="btn btn-primary rounded-pill px-4 shadow-sm">
+      <i class="fa-solid fa-plus"></i> Nueva Transacción
+    </a>
+  </div>
+
   <div class="row mb-4">
     <div class="col-md-4">
-      <div class="card text-white bg-success">
-        <div class="card-body">Ingresos: $0</div>
+      <div class="card text-white bg-success shadow border-0 rounded-4 mb-3">
+        <div class="card-body p-4">
+          <h5 class="card-title text-white-50"><i class="fa-solid fa-arrow-up"></i> Ingresos</h5>
+          <h2 class="mb-0 fw-bold">${{ ingresos|default:"0" }}</h2>
+        </div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card text-white bg-danger">
-        <div class="card-body">Gastos: $0</div>
+      <div class="card text-white bg-danger shadow border-0 rounded-4 mb-3">
+        <div class="card-body p-4">
+          <h5 class="card-title text-white-50"><i class="fa-solid fa-arrow-down"></i> Gastos</h5>
+          <h2 class="mb-0 fw-bold">${{ gastos|default:"0" }}</h2>
+        </div>
       </div>
     </div>
     <div class="col-md-4">
-      <div class="card text-white bg-info">
-        <div class="card-body">Balance: $0</div>
+      <div class="card text-white bg-info shadow border-0 rounded-4 mb-3">
+        <div class="card-body p-4">
+          <h5 class="card-title text-white-50"><i class="fa-solid fa-wallet"></i> Balance</h5>
+          <h2 class="mb-0 fw-bold">${{ balance|default:"0" }}</h2>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Tabla de transacciones -->
+    <div class="col-lg-8">
+      <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body p-4">
+          <h4 class="fw-bold mb-4">Últimas Transacciones</h4>
+          {% if transacciones %}
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Tipo</th>
+                  <th>Descripción</th>
+                  <th>Categoría</th>
+                  <th class="text-end">Monto</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for t in transacciones %}
+                <tr>
+                  <td>
+                    {% if t.tipo == 'ingreso' %}
+                    <span class="badge text-bg-success rounded-pill px-3 py-2">Ingreso</span>
+                    {% else %}
+                    <span class="badge text-bg-danger rounded-pill px-3 py-2">Gasto</span>
+                    {% endif %}
+                  </td>
+                  <td class="text-secondary fw-medium">{{ t.descripcion|default:t.raw_text }}</td>
+                  <td>
+                    <span class="badge text-bg-secondary rounded-pill">
+                      {{ t.categoria.nombre|default:"Sin Categoría" }}
+                    </span>
+                  </td>
+                  <td class="text-end fw-bold {% if t.tipo == 'ingreso' %}text-success{% else %}text-danger{% endif %}">
+                    {% if t.tipo == 'gasto' %}-{% endif %}${{ t.monto }}
+                  </td>
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-receipt fa-3x mb-3" style="color: #dee2e6;"></i>
+            <p class="mb-0">Aún no hay transacciones registradas.</p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <!-- Gráfico -->
+    <div class="col-lg-4">
+      <div class="card shadow-sm border-0 rounded-4 mb-4">
+        <div class="card-body p-4">
+          <h4 class="fw-bold mb-4">Gastos por Categoría</h4>
+          {% if grafico_categorias %}
+          <canvas id="categoriasChart" height="250"></canvas>
+          {% else %}
+          <div class="text-center py-5 text-muted">
+            <i class="fa-solid fa-chart-pie fa-3x mb-3" style="color: #dee2e6;"></i>
+            <p class="mb-0">No hay gastos para analizar.</p>
+          </div>
+          {% endif %}
+        </div>
       </div>
     </div>
   </div>
 </div>
+
+<!-- Script del Gráfico -->
+{% if grafico_categorias %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const ctx = document.getElementById('categoriasChart').getContext('2d');
+    
+    // Construimos los arreglos de datos desde Django
+    const labels = [];
+    const data = [];
+    {% for cat in grafico_categorias %}
+        labels.push("{{ cat.categoria__nombre|default:'Sin Categoría' }}");
+        data.push({{ cat.total }});
+    {% endfor %}
+
+    new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: data,
+          backgroundColor: [
+            '#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#E7E9ED'
+          ],
+          borderWidth: 0,
+          hoverOffset: 4
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: {
+          legend: { position: 'bottom' }
+        },
+        cutout: '70%'
+      }
+    });
+  });
+</script>
+{% endif %}
 {% endblock %}

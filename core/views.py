@@ -12,11 +12,17 @@ def dashboard(request):
     gastos = mis_gastos.filter(tipo='gasto').aggregate(Sum('monto'))['monto__sum'] or 0
     balance = ingresos - gastos
     
+    # Agrupamos los datos para poder dibujar gráficos de Torta/Barras en el frontend
+    gastos_por_categoria = mis_gastos.filter(tipo='gasto').values(
+        'categoria__nombre'
+    ).annotate(total=Sum('monto')).order_by('-total')
+
     contexto = {
         'transacciones': mis_gastos,
         'balance': balance,
         'ingresos': ingresos,
-        'gastos': gastos
+        'gastos': gastos,
+        'grafico_categorias': list(gastos_por_categoria)
     }
     return render(request, 'dashboard.html', contexto)
 
@@ -29,7 +35,8 @@ def guardar_gasto(request):
         
         # Obtener reglas del usuario y armar el diccionario[cite: 1]
         reglas_db = ReglaAutomatica.objects.filter(usuario=request.user)
-        diccionario = {r.palabra_clave: r.categoria_asignada for r in reglas_db}
+        # BUG FIX: Usar el nombre de la categoría, no la instancia de la BD
+        diccionario = {r.palabra_clave: r.categoria_asignada.nombre for r in reglas_db}
         
         # Inicializar el motor y analizar el texto[cite: 1]
         motor = MotorCategorizacion(diccionario)
